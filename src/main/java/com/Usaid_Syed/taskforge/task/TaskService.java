@@ -1,8 +1,7 @@
 package com.Usaid_Syed.taskforge.task;
 
-import org.springframework.http.HttpStatus;
+
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -50,7 +49,7 @@ public class TaskService {
 
     private Task getOrThrow(Long id) {
         return repository.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Task " + id + " not found"));
+                new TaskNotFoundException(id));
     }
 
     private TaskResponse toResponse(Task t) {
