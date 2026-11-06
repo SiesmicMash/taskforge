@@ -1,122 +1,91 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState} from "react"
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [tasks, setTasks] = useState([])
+  const [title, setTitle] = useState('')
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+  async function loadTasks() {
+    try {
+      const res = await fetch('/api/tasks')
+      if (!res.ok) throw new Error(`Request failed (${res.status})`)
+      setTasks(await res.json())
+      setError(null)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+  useEffect(() => {
+    loadTasks()
+  },[])
 
-      <div className="ticks"></div>
+  async function addTask(e) {
+    e.preventDefault()
+    const res = await fetch('api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type' : 'application/json' },
+      body: JSON.stringify({title}),
+    })
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+    if (res.ok) {
+      setTitle('')
+      loadTasks()
+    } else {
+      const body = await res.json()
+      setError(body.fieldErrors?.title ?? body.message)
+    }
+  }
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+  async function changeStatus(task, status) {
+    await fetch(`/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        title: task.title,
+        description: task.description,
+        status,
+      }),
+    })
+    loadTasks()
+  }
+
+  async function removeTask(id) {
+    await fetch(`/api/tasks/${id}`, { method: 'DELETE'})
+    loadTasks()
+  }
+
+  return (    <main style={{ maxWidth: 600, margin: '2rem auto', fontFamily: 'sans-serif' }}>
+        <h1>TaskForge</h1>
+
+        <form onSubmit={addTask}>
+          <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="New task title"
+          />
+          <button type="submit">Add</button>
+        </form>
+
+        {error && <p style={{ color: 'crimson' }}>{error}</p>}
+        {loading && <p>Loading...</p>}
+
+        <ul>
+          {tasks.map((t) => (
+              <li key={t.id}>
+                {t.title}{' '}
+                <select value={t.status} onChange={(e) => changeStatus(t, e.target.value)}>
+                  <option value="TODO">To do</option>
+                  <option value="IN_PROGRESS">In progress</option>
+                  <option value="DONE">Done</option>
+                </select>{' '}
+                <button onClick={() => removeTask(t.id)}>Delete</button>
+              </li>
+          ))}
+        </ul>
+      </main>
   )
-}
 
-export default App
+}
