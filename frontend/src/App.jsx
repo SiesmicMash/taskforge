@@ -9,11 +9,14 @@ export default function App() {
   async function loadTasks() {
     try {
       const res = await fetch('/api/tasks')
-      if (!res.ok) throw new Error(`Request failed (${res.status})`)
+      if (!res.ok) {
+       setError(`Request failed (${res.status})`)
+       return
+      }
       setTasks(await res.json())
       setError(null)
     } catch (e) {
-      setError(e.message)
+      setError(`Could nor reach the server`)
     } finally {
       setLoading(false)
     }

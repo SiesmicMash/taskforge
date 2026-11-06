@@ -14,7 +14,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
   app:
     build: .
     ports:
@@ -27,5 +26,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    environment:
+      BACKEND_URL: http://app:8080
+    depends_on:
+      - app
+
 volumes:
   pgdata:
