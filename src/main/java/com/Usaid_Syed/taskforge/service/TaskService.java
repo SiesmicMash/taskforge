@@ -1,6 +1,7 @@
-package com.Usaid_Syed.taskforge.task;
+package com.Usaid_Syed.taskforge.service;
 
 
+import com.Usaid_Syed.taskforge.task.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

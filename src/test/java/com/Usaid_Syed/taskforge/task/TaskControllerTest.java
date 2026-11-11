@@ -1,5 +1,7 @@
 package com.Usaid_Syed.taskforge.task;
 
+import com.Usaid_Syed.taskforge.controller.TaskController;
+import com.Usaid_Syed.taskforge.service.TaskService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -10,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -87,5 +90,18 @@ class TaskControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(service).delete(1L);
+    }
+
+    @Test
+    void export_returnsCsvAttachment() throws Exception {
+        when(service.findAll()).thenReturn(List.of(sampleResponse()));
+
+        String body = mockMvc.perform(get("/api/tasks/export"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"tasks.csv\""))
+                .andExpect(content().contentTypeCompatibleWith("text/csv"))
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(body).startsWith("id,title,description,status,createdAt");
     }
 }
