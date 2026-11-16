@@ -48,7 +48,7 @@ body {
 
 .topbar {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
 }
@@ -64,6 +64,31 @@ h1 {
 input, select, button {
   font: inherit;
   color: inherit;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-actions button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.topbar-actions button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.topbar-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 input, select {
@@ -221,3 +246,4 @@ button.delete:hover {
 @media (max-width: 720px) {
   .new-task, .board { grid-template-columns: 1fr; }
 }
+

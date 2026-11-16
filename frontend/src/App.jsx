@@ -79,12 +79,35 @@ export default function App() {
     const res = await request(`/api/tasks/${id}`, { method: 'DELETE' })
     if (res) loadTasks()
   }
+  async function exportCsv() {
+    try {
+      const res = await fetch('/api/tasks/export')
+      if (!res.ok) {
+        setError(`Export failed (${res.status})`)
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'tasks.csv'
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      setError('Could not reach the server')
+    }
+  }
 
   return (
     <div className="app">
       <header className="topbar">
         <h1>TaskForge</h1>
-        <span className="count">{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}</span>
+        <div className="topbar-actions">
+          <span className="count">{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}</span>
+          <button type="button" onClick={exportCsv} disabled={tasks.length === 0}>
+            Export CSV
+          </button>
+        </div>
       </header>
 
       <form className="new-task" onSubmit={addTask}>
